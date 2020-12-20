@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
+using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ChatApp
 {
-    public partial class Form1 : Form
+    public class Client
     {
-       
 
         public List<String> Messages = new List<String>();
         private Socket _sck;
@@ -39,47 +32,32 @@ namespace ChatApp
             }
         }
 
-        public Form1()
-        {
-            InitializeComponent();
-        }
 
-        private void startBtn_Click(object sender, EventArgs e)
+        public Client(string ownIP, int ownPort, string remoteIP, int remotePort)
         {
-            int portOwn = Convert.ToInt32(portOwnTextBox.Text);
-            int portRemote = Convert.ToInt32(portBoxRemote.Text);
-
 
             _sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            _epLocal = new IPEndPoint(IPAddress.Parse(ipOwnTextBox.Text), portOwn);
+            _epLocal = new IPEndPoint(IPAddress.Parse(ownIP), ownPort);
             _sck.Bind(_epLocal);
-            _epRemote = new IPEndPoint(IPAddress.Parse(ipBoxRemote.Text), portRemote);
+            _epRemote = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
             _sck.Connect(_epRemote);
             _buffer = new byte[1500];
             _sck.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _epRemote, new AsyncCallback(MessageCallBack), _buffer);
 
-            startBtn.Text = "Stop";
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            ipOwnTextBox.Text =IP;
-            ipBoxRemote.Text = IP;
-        }
-
-       
-
-        private void sendBtn_Click(object sender, EventArgs e)
+        public byte[] SendMeessage(string message)
         {
             ASCIIEncoding aSCIIEncoding = new ASCIIEncoding();
             byte[] sendingMessages = new byte[1500];
-            sendingMessages = aSCIIEncoding.GetBytes(outgoingMessage.Text);
+            sendingMessages = aSCIIEncoding.GetBytes(message);
             _sck.Send(sendingMessages);
-            listMessages.Items.Add("Me " + outgoingMessage.Text);
+            return sendingMessages;
         }
 
-        public void MessageCallBack(IAsyncResult aResult)
+
+        private void MessageCallBack(IAsyncResult aResult)
         {
             try
             {
@@ -87,7 +65,7 @@ namespace ChatApp
                 receivedData = (byte[])aResult.AsyncState;
                 ASCIIEncoding sCIIEncoding = new ASCIIEncoding();
                 string receivedMessage = sCIIEncoding.GetString(receivedData);
-                listMessages.Items.Add("Friend: " + receivedMessage);
+                Messages.Add("Friend: " + receivedMessage);
                 _sck.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _epRemote, new AsyncCallback(MessageCallBack), _buffer);
 
             }
