@@ -21,6 +21,7 @@ namespace ChatApp
         private EndPoint _epLocal;
         private EndPoint _epRemote;
         private byte[] _buffer;
+        private bool _start = false;
         public static string IP
         {
             get
@@ -46,26 +47,42 @@ namespace ChatApp
 
         private void startBtn_Click(object sender, EventArgs e)
         {
-            int portOwn = Convert.ToInt32(portOwnTextBox.Text);
-            int portRemote = Convert.ToInt32(portBoxRemote.Text);
+            if (!_start)
+            {
+                try
+                {
+                    int portOwn = Convert.ToInt32(portOwnTextBox.Text);
+                    int portRemote = Convert.ToInt32(portBoxRemote.Text);
 
 
-            _sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            _epLocal = new IPEndPoint(IPAddress.Parse(ipOwnTextBox.Text), portOwn);
-            _sck.Bind(_epLocal);
-            _epRemote = new IPEndPoint(IPAddress.Parse(ipBoxRemote.Text), portRemote);
-            _sck.Connect(_epRemote);
-            _buffer = new byte[1500];
-            _sck.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _epRemote, new AsyncCallback(MessageCallBack), _buffer);
+                    _sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    _sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    _epLocal = new IPEndPoint(IPAddress.Parse(ipOwnTextBox.Text), portOwn);
+                    _sck.Bind(_epLocal);
+                    _epRemote = new IPEndPoint(IPAddress.Parse(ipBoxRemote.Text), portRemote);
+                    _sck.Connect(_epRemote);
+                    _buffer = new byte[1500];
+                    _sck.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _epRemote, new AsyncCallback(MessageCallBack), _buffer);
 
-            startBtn.Text = "Stop";
+                    startBtn.Text = "Stop";
+                    _start = true;
+                }
+                catch (FormatException ex){
+                    MessageBox.Show("Port is invalid");
+                }
+            } else
+            {
+
+                _start = false;
+                startBtn.Text = "Start";
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             ipOwnTextBox.Text =IP;
             ipBoxRemote.Text = IP;
+            startBtn.Text = "Start" ;
         }
 
        
