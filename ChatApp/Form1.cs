@@ -53,8 +53,6 @@ namespace ChatApp
                 {
                     int portOwn = Convert.ToInt32(portOwnTextBox.Text);
                     int portRemote = Convert.ToInt32(portBoxRemote.Text);
-
-
                     _sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                     _sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                     _epLocal = new IPEndPoint(IPAddress.Parse(ipOwnTextBox.Text), portOwn);
@@ -72,7 +70,10 @@ namespace ChatApp
                 }
             } else
             {
-
+         
+                _sck.Shutdown(SocketShutdown.Both);
+                _sck.Close();
+                _sck = null;
                 _start = false;
                 startBtn.Text = "Start";
             }
